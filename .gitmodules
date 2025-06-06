@@ -1,0 +1,6 @@
+[submodule "orbot-android"]
+	path = orbot-android
+	url = git@github.com:dreadstar/orbot-android.git
+[submodule "Meshrabiya"]
+	path = Meshrabiya
+	url = git@github.com:dreadstar/Meshrabiya.git
