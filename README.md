@@ -2,25 +2,56 @@
 
 A privacy-preserving mesh networking integration for Orbot, enabling secure, decentralized communication and content sharing in challenging network environments.
 
-## 🌟 Features
+## Features
 
-### Mesh Networking
-- **Multi-hop Communication**: Route messages through multiple nodes to reach distant peers
-- **Dynamic Role Assignment**: Automatic node role optimization based on network conditions
-- **Self-healing Network**: Automatic recovery from node failures and network partitions
-- **Bandwidth Optimization**: Efficient message routing and data transfer
+- Multi-hop mesh networking with dynamic role assignment
+- End-to-end encrypted communications
+- Tor network integration
+- Privacy-preserving logging
+- Intuitive UI with app selection
+- Real-time network monitoring
 
-### Privacy & Security
-- **End-to-end Encryption**: All mesh communications are encrypted
-- **Tor Integration**: Optional traffic routing through the Tor network
-- **Anonymized Logging**: Privacy-preserving diagnostic capabilities
-- **Secure Key Exchange**: Protected node-to-node communication
+## Building
 
-### User Experience
-- **Intuitive UI**: Simple mesh network control interface
-- **App Selection**: Choose which apps use the mesh network
-- **Status Monitoring**: Real-time network health indicators
-- **Beta Testing**: Optional enhanced logging for development
+1. Clone and initialize submodules:
+   ```bash
+   git clone https://github.com/yourusername/orbot-meshrabiya-integration.git
+   cd orbot-meshrabiya-integration
+   git submodule update --init --recursive
+   ```
+
+2. Open in Android Studio:
+   - Launch Android Studio
+   - Select "Open an Existing Project"
+   - Navigate to and select the `orbot-android` directory
+   - Wait for the project to load and index
+
+3. Sync Gradle files:
+   - Ensure Gradle Plugin installed
+   - Click the "Gradle Elephant" on the toolbar
+   - select the download sources icon
+   - Select "Sync Project with Gradle Files" (or press Ctrl+Shift+O / Cmd+Shift+O) didnt work for me
+   - Wait for the sync to complete
+
+4. Build the project:
+   - Click the "Build" menu
+   - Select "Make Project" (or press Ctrl+F9 / Cmd+F9)
+   - Wait for the build to complete
+
+5. Run the app:
+   - Select your target device from the device dropdown
+   - Click the "Run" button (green play icon) or press Shift+F10 / Control+R
+
+## Testing
+
+Run tests from Android Studio:
+- Unit tests: `orbot-android/app/src/test`
+- Integration tests: `orbot-android/app/src/androidTest`
+- UI tests: `orbot-android/app/src/androidTest/java/org/torproject/android/ui`
+
+## License
+
+GPL v3
 
 ## 🛠️ Building the Project
 
@@ -109,10 +140,6 @@ Run UI tests:
 3. Make your changes
 4. Run tests
 5. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the GPL v3 License - see the LICENSE file for details.
 
 ## 🙏 Acknowledgments
 
