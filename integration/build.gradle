@@ -1,0 +1,46 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'org.torproject.android.meshrabiya'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "org.torproject.android.meshrabiya"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation project(':Meshrabiya:lib-meshrabiya')
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.android.material
+    implementation libs.androidx.constraintlayout
+    testImplementation libs.junit.jupiter
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+} 

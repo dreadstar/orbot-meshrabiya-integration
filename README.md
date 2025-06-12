@@ -23,20 +23,28 @@ A privacy-preserving mesh networking integration for Orbot, enabling secure, dec
 2. Open in Android Studio:
    - Launch Android Studio
    - Select "Open an Existing Project"
-   - Navigate to and select the `orbot-android` directory
+   - Navigate to and select the project directory
    - Wait for the project to load and index
 
 3. Sync Gradle files:
    - Ensure Gradle Plugin installed
    - Click the "Gradle Elephant" on the toolbar
-   - select the download sources icon
-   - Select "Sync Project with Gradle Files" (or press Ctrl+Shift+O / Cmd+Shift+O) didnt work for me
+   - Select the download sources icon
+   - Select "Sync Project with Gradle Files" (or press Ctrl+Shift+O / Cmd+Shift+O)
    - Wait for the sync to complete
 
 4. Build the project:
-   - Click the "Build" menu
-   - Select "Make Project" (or press Ctrl+F9 / Cmd+F9)
-   - Wait for the build to complete
+   - For debug build:
+     ```bash
+     ./gradlew :integration:assembleDebug
+     ```
+     The debug APK will be generated at: `integration/build/outputs/apk/debug/integration-debug.apk`
+   
+   - For release build:
+     ```bash
+     ./gradlew :integration:assembleRelease
+     ```
+     The release APK will be generated at: `integration/build/outputs/apk/release/integration-release.apk`
 
 5. Run the app:
    - Select your target device from the device dropdown
