@@ -1,12 +1,12 @@
 [versions]
-agp = "8.2.0"
+agp = "8.10.1"
 kotlin = "2.1.21"
 kotlin-serialization = "2.1.0"
-android-material = "1.12.0"
+android-material = "1.9.0"
 androidx-core-ktx = "1.16.0"
-androidx-appcompat = "1.7.1"
+androidx-appcompat = "1.6.1"
 androidx-activity = "1.8.2"
-androidx-constraintlayout = "2.2.1"
+androidx-constraintlayout = "2.1.4"
 kotlinx-coroutines = "1.7.3"
 kotlinx-serialization-json = "1.8.1"
 junit-jupiter = "5.13.1"
@@ -20,7 +20,7 @@ datastore = "1.1.7"
 mockito-kotlin = "5.4.0"
 turbine = "1.2.1"
 mockwebserver = "4.12.0"
-okhttp = "4.12.0"
+okhttp = "4.11.0"
 mockito-android = "5.18.0"
 androidx-test-rules = "1.6.1"
 androidx-test-ext-junit = "1.2.1"
@@ -56,4 +56,4 @@ androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization" } 
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization" }

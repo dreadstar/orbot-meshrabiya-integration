@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'org.torproject.android.meshrabiya'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "org.torproject.android.meshrabiya"
@@ -21,6 +21,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/versions/9/OSGI-INF/MANIFEST.MF', 'META-INF/MANIFEST.MF']
         }
     }
     compileOptions {
