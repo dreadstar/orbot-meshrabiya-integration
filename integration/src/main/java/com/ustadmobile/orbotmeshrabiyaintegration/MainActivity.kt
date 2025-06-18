@@ -38,7 +38,13 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.CHANGE_WIFI_STATE,
         Manifest.permission.ACCESS_NETWORK_STATE,
         Manifest.permission.CHANGE_NETWORK_STATE
-    ) + if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+    ) + if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        arrayOf(
+            Manifest.permission.NEARBY_WIFI_DEVICES,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_ADVERTISE
+        )
+    } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         arrayOf(
             Manifest.permission.BLUETOOTH_CONNECT,
             Manifest.permission.BLUETOOTH_ADVERTISE
@@ -101,26 +107,54 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun startMeshNetwork() {
-        if (!hasRequiredPermissions()) {
-            Toast.makeText(this, "Permissions required", Toast.LENGTH_SHORT).show()
+        Log.d("MainActivity", "startMeshNetwork called")
+        
+        // Check permissions with detailed logging
+        val missingPermissions = requiredPermissions.filter { permission ->
+            val granted = ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
+            Log.d("MainActivity", "Permission $permission: ${if (granted) "GRANTED" else "DENIED"}")
+            !granted
+        }
+        
+        if (missingPermissions.isNotEmpty()) {
+            val message = "Missing permissions: ${missingPermissions.joinToString()}"
+            Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+            Log.w("MainActivity", message)
             return
         }
         
         lifecycleScope.launch {
             try {
                 statusText.text = "Initializing mesh network..."
+                Log.d("MainActivity", "Starting mesh network initialization...")
                 
                 if (virtualNode == null) {
                     Log.d("MainActivity", "Creating AndroidVirtualNode...")
-                    virtualNode = AndroidVirtualNode(
-                        context = this@MainActivity,
-                        dataStore = dataStore,
-                        externalScheduledExecutor = scheduledExecutor
-                    )
-                    Log.d("MainActivity", "AndroidVirtualNode created successfully")
+                    statusText.text = "Creating virtual node..."
+                    
+                    try {
+                        virtualNode = AndroidVirtualNode(
+                            context = this@MainActivity,
+                            dataStore = dataStore,
+                            externalScheduledExecutor = scheduledExecutor
+                        )
+                        Log.d("MainActivity", "AndroidVirtualNode created successfully")
+                    } catch (constructorException: Exception) {
+                        // Handle constructor-specific errors
+                        val actualConstructorException = if (constructorException is java.lang.reflect.InvocationTargetException && constructorException.cause != null) {
+                            constructorException.cause!!
+                        } else {
+                            constructorException
+                        }
+                        
+                        Log.e("MainActivity", "Failed in AndroidVirtualNode constructor", actualConstructorException)
+                        throw RuntimeException("AndroidVirtualNode constructor failed: ${actualConstructorException.message} (${actualConstructorException::class.simpleName})", actualConstructorException)
+                    }
                 }
                 
                 Log.d("MainActivity", "Enabling WiFi hotspot...")
+                statusText.text = "Starting WiFi hotspot..."
+                
                 virtualNode?.setWifiHotspotEnabled(
                     enabled = true,
                     preferredBand = ConnectBand.BAND_5GHZ,
@@ -131,13 +165,26 @@ class MainActivity : AppCompatActivity() {
                 updateUI()
                 Log.d("MainActivity", "Mesh network started successfully")
             } catch (e: Exception) {
-                val errorMessage = e.message ?: "Unknown error"
-                val detailedError = "Failed to start: $errorMessage (${e::class.simpleName})"
-                statusText.text = detailedError
-                Log.e("MainActivity", "Failed to start mesh network", e)
+                // Unwrap InvocationTargetException to get the real cause
+                val actualException = if (e is java.lang.reflect.InvocationTargetException && e.cause != null) {
+                    e.cause!!
+                } else {
+                    e
+                }
                 
-                // Print stack trace for debugging
+                val errorMessage = actualException.message ?: "Unknown error"
+                val detailedError = "Failed to start: $errorMessage (${actualException::class.simpleName})"
+                statusText.text = detailedError
+                Log.e("MainActivity", "Failed to start mesh network", actualException)
+                
+                // Show detailed error in Toast for immediate visibility
+                Toast.makeText(this@MainActivity, detailedError, Toast.LENGTH_LONG).show()
+                
+                // Print full stack trace for debugging
+                Log.e("MainActivity", "Original exception:", e)
+                Log.e("MainActivity", "Actual cause:", actualException)
                 e.printStackTrace()
+                actualException.printStackTrace()
             }
         }
     }
