@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "org.torproject.android.meshrabiya"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "org.torproject.android.meshrabiya"
@@ -41,6 +41,15 @@ android {
     buildFeatures {
         buildConfig = true
     }
+    
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/versions/9/OSGI-INF/MANIFEST.MF",
+                "META-INF/MANIFEST.MF"
+            )
+        }
+    }
 }
 
 dependencies {
@@ -60,4 +69,4 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso)
-} 
+}

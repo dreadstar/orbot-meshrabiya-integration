@@ -1,29 +1,30 @@
 [versions]
-agp = "8.2.0"
-kotlin = "1.9.0"
-kotlin-serialization = "1.9.0"
-android-material = "1.11.0"
-androidx-core-ktx = "1.12.0"
+agp = "8.10.1"
+kotlin = "2.1.21"
+kotlin-serialization = "2.1.0"
+android-material = "1.9.0"
+androidx-core-ktx = "1.16.0"
 androidx-appcompat = "1.6.1"
 androidx-activity = "1.8.2"
 androidx-constraintlayout = "2.1.4"
 kotlinx-coroutines = "1.7.3"
-kotlinx-serialization-json = "1.6.0"
-junit-jupiter = "5.10.1"
-androidx-junit = "1.1.5"
-androidx-espresso = "3.5.1"
-android-desugar = "2.0.4"
-rawhttp = "2.5.2"
-bouncycastle = "1.75"
-ipaddress = "5.4.0"
-datastore = "1.0.0"
-mockito-kotlin = "5.2.1"
-turbine = "1.0.0"
+kotlinx-serialization-json = "1.8.1"
+junit-jupiter = "5.13.1"
+androidx-junit = "1.2.1"
+androidx-espresso = "3.6.1"
+android-desugar = "2.1.5"
+rawhttp = "2.6.0"
+bouncycastle = "1.81"
+ipaddress = "5.5.1"
+datastore = "1.1.7"
+mockito-kotlin = "5.4.0"
+turbine = "1.2.1"
 mockwebserver = "4.12.0"
-okhttp = "4.12.0"
-mockito-android = "5.8.0"
-androidx-test-rules = "1.5.0"
-androidx-test-ext-junit = "1.1.5"
+okhttp = "4.11.0"
+mockito-android = "5.18.0"
+androidx-test-rules = "1.6.1"
+androidx-test-ext-junit = "1.2.1"
+room-runtime-android = "2.7.1"
 
 [libraries]
 android-material = { group = "com.google.android.material", name = "material", version.ref = "android-material" }
@@ -49,9 +50,10 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 mockito-android = { group = "org.mockito", name = "mockito-android", version.ref = "mockito-android" }
 androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidx-test-rules" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
+androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "room-runtime-android" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization" } 
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization" }
