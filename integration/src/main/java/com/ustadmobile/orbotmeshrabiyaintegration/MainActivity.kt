@@ -2,7 +2,9 @@ package com.ustadmobile.orbotmeshrabiyaintegration
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -36,7 +38,17 @@ class MainActivity : AppCompatActivity() {
         Manifest.permission.CHANGE_WIFI_STATE,
         Manifest.permission.ACCESS_NETWORK_STATE,
         Manifest.permission.CHANGE_NETWORK_STATE
-    )
+    ) + if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        arrayOf(
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_ADVERTISE
+        )
+    } else {
+        arrayOf(
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.BLUETOOTH_ADMIN
+        )
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,14 +108,19 @@ class MainActivity : AppCompatActivity() {
         
         lifecycleScope.launch {
             try {
+                statusText.text = "Initializing mesh network..."
+                
                 if (virtualNode == null) {
+                    Log.d("MainActivity", "Creating AndroidVirtualNode...")
                     virtualNode = AndroidVirtualNode(
                         context = this@MainActivity,
                         dataStore = dataStore,
-                        scheduledExecutor = scheduledExecutor
+                        externalScheduledExecutor = scheduledExecutor
                     )
+                    Log.d("MainActivity", "AndroidVirtualNode created successfully")
                 }
                 
+                Log.d("MainActivity", "Enabling WiFi hotspot...")
                 virtualNode?.setWifiHotspotEnabled(
                     enabled = true,
                     preferredBand = ConnectBand.BAND_5GHZ,
@@ -112,8 +129,15 @@ class MainActivity : AppCompatActivity() {
                 
                 statusText.text = "Mesh network started"
                 updateUI()
+                Log.d("MainActivity", "Mesh network started successfully")
             } catch (e: Exception) {
-                statusText.text = "Failed to start: ${e.message}"
+                val errorMessage = e.message ?: "Unknown error"
+                val detailedError = "Failed to start: $errorMessage (${e::class.simpleName})"
+                statusText.text = detailedError
+                Log.e("MainActivity", "Failed to start mesh network", e)
+                
+                // Print stack trace for debugging
+                e.printStackTrace()
             }
         }
     }
