@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
+    android:background="#000000"
     tools:context=".MainActivity">
 
     <TextView
@@ -15,6 +16,7 @@
         android:text="Orbot Meshrabiya Integration"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:textColor="#FFFFFF"
         android:layout_marginTop="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -26,6 +28,7 @@
         android:layout_height="wrap_content"
         android:text="Mesh network stopped"
         android:textSize="16sp"
+        android:textColor="#FFFFFF"
         android:textAlignment="center"
         android:layout_marginTop="32dp"
         android:layout_marginStart="16dp"
@@ -66,6 +69,7 @@
         android:text="Network Information"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:textColor="#FFFFFF"
         android:layout_marginTop="32dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/start_button" />
@@ -93,8 +97,9 @@
                 android:layout_height="wrap_content"
                 android:text="Node: Not initialized"
                 android:textSize="14sp"
+                android:textColor="#00FF00"
                 android:fontFamily="monospace"
-                android:background="#f5f5f5"
+                android:background="#1a1a1a"
                 android:padding="8dp"
                 android:layout_marginBottom="8dp" />
 
@@ -104,8 +109,9 @@
                 android:layout_height="wrap_content"
                 android:text="Hotspot: Not enabled"
                 android:textSize="14sp"
+                android:textColor="#00FFFF"
                 android:fontFamily="monospace"
-                android:background="#f5f5f5"
+                android:background="#1a1a1a"
                 android:padding="8dp"
                 android:layout_marginBottom="8dp" />
 
@@ -115,8 +121,9 @@
                 android:layout_height="wrap_content"
                 android:text="Peers: None discovered"
                 android:textSize="14sp"
+                android:textColor="#FFFF00"
                 android:fontFamily="monospace"
-                android:background="#f5f5f5"
+                android:background="#1a1a1a"
                 android:padding="8dp"
                 android:layout_marginBottom="8dp" />
 
@@ -126,8 +133,9 @@
                 android:layout_height="wrap_content"
                 android:text="Logs:\n"
                 android:textSize="12sp"
+                android:textColor="#FFFFFF"
                 android:fontFamily="monospace"
-                android:background="#f0f0f0"
+                android:background="#2a2a2a"
                 android:padding="8dp"
                 android:minHeight="100dp" />
 
