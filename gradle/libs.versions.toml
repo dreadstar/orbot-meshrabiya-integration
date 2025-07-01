@@ -1,18 +1,20 @@
 [versions]
-agp = "8.10.1"
-kotlin = "2.1.21"
-kotlin-serialization = "2.1.0"
-android-material = "1.9.0"
+agp = "8.11.0"
+kotlin = "2.2.0"
+kotlin-serialization = "2.2.0"
+android-material = "1.12.0"
 androidx-core-ktx = "1.16.0"
-androidx-appcompat = "1.6.1"
-androidx-activity = "1.8.2"
-androidx-constraintlayout = "2.1.4"
-kotlinx-coroutines = "1.7.3"
+androidx-appcompat = "1.7.1"
+androidx-activity = "1.10.1"
+androidx-constraintlayout = "2.2.1"
+kotlin-test = "2.1.21"
+kotlinx-coroutines = "1.10.2"
 kotlinx-serialization-json = "1.8.1"
-junit-jupiter = "5.13.1"
+junit-jupiter = "5.13.2"
 androidx-junit = "1.2.1"
 androidx-espresso = "3.6.1"
 android-desugar = "2.1.5"
+lifecycle-runtime-ktx = "2.9.1"
 rawhttp = "2.6.0"
 bouncycastle = "1.81"
 ipaddress = "5.5.1"
@@ -20,11 +22,11 @@ datastore = "1.1.7"
 mockito-kotlin = "5.4.0"
 turbine = "1.2.1"
 mockwebserver = "4.12.0"
-okhttp = "4.11.0"
+okhttp = "4.12.0"
 mockito-android = "5.18.0"
 androidx-test-rules = "1.6.1"
 androidx-test-ext-junit = "1.2.1"
-room-runtime-android = "2.7.1"
+room-runtime-android = "2.7.2"
 
 [libraries]
 android-material = { group = "com.google.android.material", name = "material", version.ref = "android-material" }
@@ -32,6 +34,8 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidx-activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidx-constraintlayout" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin-test" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit-jupiter" }
