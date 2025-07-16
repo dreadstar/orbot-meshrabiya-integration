@@ -162,7 +162,7 @@ class MainActivity : AppCompatActivity() {
                         virtualNode = AndroidVirtualNode(
                             context = this@MainActivity,
                             dataStore = dataStore,
-                            externalScheduledExecutor = scheduledExecutor
+                            scheduledExecutorService = scheduledExecutor
                         )
                         Log.d("MainActivity", "AndroidVirtualNode created successfully")
                     } catch (constructorException: Exception) {
