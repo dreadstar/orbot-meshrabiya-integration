@@ -154,3 +154,39 @@ Run UI tests:
 - Orbot Project for the base VPN functionality
 - Meshrabiya Project for the mesh networking implementation
 - All contributors and testers
+
+
+
+
+# 📦 Project Setup & Development Guidelines
+
+This document outlines the setup requirements, version compatibility, and common commands for working on this project.
+
+---
+
+## ✅ Requirements
+
+Ensure your environment uses **consistent versions** across all modules to avoid compatibility issues:
+
+| Component                 | Version                      |
+|--------------------------|------------------------------|
+| **Android Gradle Plugin (AGP)** | `8.2.0`              |
+| **Kotlin**               | `2.0.0`                      |
+| **Kotlin Serialization** | `2.0.0`                      |
+| **Gradle**               | `8.4` *(recommended)*        |
+| **Java**                 | `17`                         |
+| **Android Studio**       | `Narwhal | 2025.1.1 Patch 1` |
+
+> ⚠️ **Always use the same AGP and Kotlin versions across all modules** for stable builds and IDE support.
+
+---
+
+## 🧪 Running Unit Tests
+
+### 🔹 Step-by-step
+
+1. Open a terminal in the **project root directory**
+2. Run the following command:
+
+```bash
+./gradlew runAllTests

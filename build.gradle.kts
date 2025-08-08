@@ -9,3 +9,14 @@ plugins {
 tasks.register("clean", Delete::class) {
     delete(layout.buildDirectory)
 }
+
+tasks.register("runAllTests") {
+    description = "Runs all tests in all submodules"
+    group = "verification"
+
+    dependsOn(
+        subprojects.flatMap { subproject ->
+            subproject.tasks.matching { it.name == "test" }
+        }
+    )
+}
