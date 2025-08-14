@@ -5,6 +5,9 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.serialization) apply false
 }
+dependencies {
+    // ...existing code...
+}
 
 tasks.register("clean", Delete::class) {
     delete(layout.buildDirectory)

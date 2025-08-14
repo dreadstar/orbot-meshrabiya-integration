@@ -1,3 +1,9 @@
+repositories {
+    google()
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://raw.githubusercontent.com/guardianproject/gpmaven/master") }
+}
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -18,12 +24,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-        debug {
+
             isDebuggable = true
         }
     }
@@ -69,4 +70,6 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso)
+    testImplementation(libs.kotlin.mockk)
+    androidTestImplementation(libs.kotlin.mockk.android)
 }

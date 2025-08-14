@@ -1,4 +1,5 @@
 [versions]
+mockk = "1.13.10"
 agp = "8.2.0"
 kotlin = "2.0.0"
 kotlin-serialization = "2.0.0"
@@ -29,6 +30,8 @@ androidx-test-ext-junit = "1.2.1"
 room-runtime-android = "2.7.2"
 
 [libraries]
+kotlin-mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+kotlin-mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
 android-material = { group = "com.google.android.material", name = "material", version.ref = "android-material" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
