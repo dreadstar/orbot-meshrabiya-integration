@@ -83,7 +83,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/network_info_title"
-        app:layout_constraintBottom_toTopOf="@id/test_buttons_layout">
+        app:layout_constraintBottom_toTopOf="@id/gateway_capabilities_title">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -142,6 +142,129 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- Gateway Capabilities Section -->
+    <TextView
+        android:id="@+id/gateway_capabilities_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gateway Capabilities"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/info_scroll" />
+
+    <LinearLayout
+        android:id="@+id/gateway_controls_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#1a1a1a"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/gateway_capabilities_title">
+
+        <!-- Share Internet Toggle -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share Internet"
+                    android:textSize="16sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/share_internet_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Allow mesh peers to access internet through this device"
+                    android:textSize="12sp"
+                    android:textColor="#CCCCCC"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <Switch
+                android:id="@+id/share_internet_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp" />
+
+        </LinearLayout>
+
+        <!-- Share Tor Toggle -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Share Tor"
+                    android:textSize="16sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/share_tor_description"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Allow mesh peers to access Tor network through this device"
+                    android:textSize="12sp"
+                    android:textColor="#CCCCCC"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <Switch
+                android:id="@+id/share_tor_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp" />
+
+        </LinearLayout>
+
+        <!-- Gateway Status -->
+        <TextView
+            android:id="@+id/gateway_status_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status: Standard Node"
+            android:textSize="14sp"
+            android:textColor="#00FF00"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp"
+            android:padding="8dp"
+            android:background="#2a2a2a"
+            android:gravity="center" />
+
+    </LinearLayout>
+
     <!-- Test Buttons -->
     <LinearLayout
         android:id="@+id/test_buttons_layout"
@@ -151,6 +274,7 @@
         android:layout_marginBottom="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/gateway_controls_layout"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <Button

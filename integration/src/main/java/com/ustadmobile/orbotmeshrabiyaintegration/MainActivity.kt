@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -27,7 +28,7 @@ import java.util.concurrent.Executors
 
 val MainActivity.dataStore by preferencesDataStore(name = "mesh_settings")
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), GatewayCapabilitiesManager.GatewayCapabilityListener {
     
     private var virtualNode: AndroidVirtualNode? = null
     private lateinit var statusText: TextView
@@ -41,6 +42,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var logText: TextView
     private lateinit var refreshStatusButton: Button
     private lateinit var testConnectivityButton: Button
+    
+    // Gateway capability elements
+    private lateinit var shareInternetSwitch: Switch
+    private lateinit var shareTorSwitch: Switch
+    private lateinit var gatewayStatusText: TextView
+    private lateinit var gatewayCapabilitiesManager: GatewayCapabilitiesManager
     
     private val scheduledExecutor = Executors.newScheduledThreadPool(4)
     private val logMessages = mutableListOf<String>()
@@ -85,6 +92,15 @@ class MainActivity : AppCompatActivity() {
         refreshStatusButton = findViewById(R.id.refresh_status_button)
         testConnectivityButton = findViewById(R.id.test_connectivity_button)
         
+        // Initialize gateway capability elements
+        shareInternetSwitch = findViewById(R.id.share_internet_switch)
+        shareTorSwitch = findViewById(R.id.share_tor_switch)
+        gatewayStatusText = findViewById(R.id.gateway_status_text)
+        
+        // Initialize gateway capabilities manager
+        gatewayCapabilitiesManager = GatewayCapabilitiesManager.getInstance(this)
+        gatewayCapabilitiesManager.addListener(this)
+        
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -95,6 +111,15 @@ class MainActivity : AppCompatActivity() {
         stopButton.setOnClickListener { stopMeshNetwork() }
         refreshStatusButton.setOnClickListener { refreshNetworkStatus() }
         testConnectivityButton.setOnClickListener { testNetworkConnectivity() }
+        
+        // Setup gateway capability listeners
+        shareInternetSwitch.setOnCheckedChangeListener { _, isChecked ->
+            gatewayCapabilitiesManager.shareInternet = isChecked
+        }
+        
+        shareTorSwitch.setOnCheckedChangeListener { _, isChecked ->
+            gatewayCapabilitiesManager.shareTor = isChecked
+        }
         
         // Initialize status displays
         refreshNetworkStatus()
@@ -296,6 +321,9 @@ class MainActivity : AppCompatActivity() {
                 
                 addLogMessage("Status refreshed")
                 
+                // Validate gateway capabilities
+                gatewayCapabilitiesManager.validateCapabilities()
+                
             } catch (e: Exception) {
                 addLogMessage("Error refreshing status: ${e.message}")
                 Log.e("MainActivity", "Error refreshing status", e)
@@ -357,7 +385,56 @@ class MainActivity : AppCompatActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
+        gatewayCapabilitiesManager.removeListener(this)
+        gatewayCapabilitiesManager.cleanup()
         virtualNode?.close()
         scheduledExecutor.shutdown()
+    }
+    
+    // GatewayCapabilityListener implementation
+    override fun onCapabilityChanged(status: GatewayCapabilitiesManager.GatewayStatus) {
+        runOnUiThread {
+            // Update switch states without triggering listeners
+            shareInternetSwitch.setOnCheckedChangeListener(null)
+            shareTorSwitch.setOnCheckedChangeListener(null)
+            
+            shareInternetSwitch.isChecked = status.shareInternet
+            shareTorSwitch.isChecked = status.shareTor
+            
+            // Update switch availability based on system capabilities
+            shareInternetSwitch.isEnabled = status.canShareInternet
+            shareTorSwitch.isEnabled = status.canShareTor
+            
+            // Update status text
+            gatewayStatusText.text = "Status: ${gatewayCapabilitiesManager.getStatusDescription()}"
+            
+            // Set status text color based on capabilities
+            val statusColor = when {
+                status.shareInternet && status.shareTor -> android.graphics.Color.parseColor("#00FFFF") // Cyan
+                status.shareInternet -> android.graphics.Color.parseColor("#00FF00") // Green
+                status.shareTor -> android.graphics.Color.parseColor("#FF8C00") // Orange
+                else -> android.graphics.Color.parseColor("#FFFFFF") // White
+            }
+            gatewayStatusText.setTextColor(statusColor)
+            
+            // Re-attach listeners
+            shareInternetSwitch.setOnCheckedChangeListener { _, isChecked ->
+                gatewayCapabilitiesManager.shareInternet = isChecked
+            }
+            
+            shareTorSwitch.setOnCheckedChangeListener { _, isChecked ->
+                gatewayCapabilitiesManager.shareTor = isChecked
+            }
+            
+            // Log capability changes
+            val capabilityDescription = when {
+                status.shareInternet && status.shareTor -> "dual gateway mode (Internet + Tor)"
+                status.shareInternet -> "Internet gateway mode"
+                status.shareTor -> "Tor gateway mode"
+                else -> "standard node mode"
+            }
+            
+            addLogMessage("Gateway capability: $capabilityDescription")
+        }
     }
 }
