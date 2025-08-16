@@ -57,6 +57,11 @@ Run tests from Android Studio:
 - Integration tests: `orbot-android/app/src/androidTest`
 - UI tests: `orbot-android/app/src/androidTest/java/org/torproject/android/ui`
 
+Run ALL tests with Coverage analysis from terminal
+- ,/gradlew runAllTests --console=plain
+- ./gradlew aggregatedCoverageReport --console=plain
+
+
 ## License
 
 GPL v3

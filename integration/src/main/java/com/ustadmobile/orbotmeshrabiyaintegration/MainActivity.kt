@@ -536,7 +536,7 @@ class MainActivity : AppCompatActivity(), GatewayCapabilitiesManager.GatewayCapa
             val integrationInfo = """
                 Status: ${status.statusSummary}
                 Gateway Active: ${status.isGatewayActive}
-                Gateway Mode: ${status.gatewayMode.name}
+                Gateway Mode: ${status.gatewayMode}
                 Tor Ready: ${status.isTorReady}
                 Mesh Nodes: ${status.meshIntelligence.totalNodes}
                 Active Gateways: ${status.meshIntelligence.activeGateways}
@@ -571,7 +571,7 @@ class MainActivity : AppCompatActivity(), GatewayCapabilitiesManager.GatewayCapa
             // Show recent logs
             val recentLogs = logs.takeLast(15)
             val logText = recentLogs.joinToString("\n") { log ->
-                val timestamp = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(log.timestamp))
+                val timestamp = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date.from(log.timestamp))
                 "$timestamp [${log.level.name.first()}] ${log.message}"
             }
             
@@ -598,6 +598,10 @@ class MainActivity : AppCompatActivity(), GatewayCapabilitiesManager.GatewayCapa
                 LogLevel.BASIC -> LogLevel.DETAILED
                 LogLevel.DETAILED -> LogLevel.FULL
                 LogLevel.FULL -> LogLevel.DISABLED
+                LogLevel.DEBUG -> LogLevel.INFO
+                LogLevel.INFO -> LogLevel.WARN
+                LogLevel.WARN -> LogLevel.ERROR
+                LogLevel.ERROR -> LogLevel.DEBUG
             }
             
             betaTestLogger.setLogLevel(newLevel)

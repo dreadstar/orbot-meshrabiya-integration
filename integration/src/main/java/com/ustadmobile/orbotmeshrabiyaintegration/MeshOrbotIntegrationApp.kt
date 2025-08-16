@@ -3,13 +3,22 @@ package com.ustadmobile.orbotmeshrabiyaintegration
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import com.ustadmobile.meshrabiya.vnet.*
 import com.ustadmobile.meshrabiya.mmcp.*
 import com.ustadmobile.meshrabiya.beta.BetaTestLogger
 import com.ustadmobile.meshrabiya.beta.LogLevel
+import com.ustadmobile.orbotmeshrabiyaintegration.interfaces.TorService
+import com.ustadmobile.orbotmeshrabiyaintegration.interfaces.MeshTrafficRouter
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
+import java.util.concurrent.ScheduledExecutorService
+
+// DataStore extension for application context
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "mesh_settings")
 
 /**
  * Example application demonstrating mesh-to-Orbot traffic routing integration
@@ -23,7 +32,15 @@ class MeshOrbotIntegrationApp : Application() {
     private lateinit var emergentRoleManager: EmergentRoleManager
     private lateinit var meshTrafficRouter: MeshTrafficRouter
     private lateinit var betaTestLogger: BetaTestLogger
-    private lateinit var orbotService: OrbotService
+    private lateinit var torService: TorService
+    
+    // Shared services
+    private lateinit var executorService: ScheduledExecutorService
+    
+    // Track routing state locally
+    @Volatile
+    private var gatewayActive = false
+    private var routingMode = MeshTrafficRouter.GatewayMode.NONE
     
     private val applicationScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
     
@@ -50,7 +67,7 @@ class MeshOrbotIntegrationApp : Application() {
     private fun initializeBetaLogging() {
         betaTestLogger = BetaTestLogger.getInstance(this)
         // Set logging level based on debug build or user preference
-        val logLevel = if (BuildConfig.DEBUG) LogLevel.FULL else LogLevel.BASIC
+        val logLevel = LogLevel.BASIC  // Simplified - remove BuildConfig dependency
         betaTestLogger.setLogLevel(logLevel)
         
         betaTestLogger.log(LogLevel.INFO, TAG, "Beta logging initialized with level: $logLevel")
@@ -58,17 +75,24 @@ class MeshOrbotIntegrationApp : Application() {
     
     private fun initializeCoreComponents() {
         try {
-            // Initialize Orbot service connection
-            orbotService = OrbotService() // This would be dependency injected in real app
+            // Initialize Tor service (dependency injected in real app)
+            torService = createTorServiceImpl()
             
-            // Initialize mesh components
-            androidVirtualNode = AndroidVirtualNode(this)
-            meshRoleManager = MeshRoleManager(this, androidVirtualNode)
+            // Initialize mesh components  
+            val dataStore = applicationContext.dataStore
+            executorService = java.util.concurrent.Executors.newSingleThreadScheduledExecutor()
             
-            // Initialize traffic router with Orbot integration
-            meshTrafficRouter = MeshTrafficRouter(this, orbotService)
+            androidVirtualNode = AndroidVirtualNode(
+                context = this,
+                dataStore = dataStore,
+                scheduledExecutorService = executorService
+            )
+            meshRoleManager = MeshRoleManager(androidVirtualNode, this)
             
-            // Initialize emergent role manager with traffic router
+            // Initialize traffic router (dependency injected in real app)
+            meshTrafficRouter = createMeshTrafficRouterImpl()
+            
+            // Initialize emergent role manager
             emergentRoleManager = EmergentRoleManager(
                 virtualNode = androidVirtualNode,
                 context = this,
@@ -79,7 +103,7 @@ class MeshOrbotIntegrationApp : Application() {
             betaTestLogger.log(LogLevel.INFO, TAG, "Core components initialized successfully")
             
         } catch (e: Exception) {
-            betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to initialize core components: ${e.message}", e)
+            betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to initialize core components: ${e.message}", throwable = e)
             throw e
         }
     }
@@ -98,7 +122,7 @@ class MeshOrbotIntegrationApp : Application() {
             betaTestLogger.log(LogLevel.INFO, TAG, "Mesh-Orbot integration setup completed")
             
         } catch (e: Exception) {
-            betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to setup integration: ${e.message}", e)
+            betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to setup integration: ${e.message}", throwable = e)
         }
     }
     
@@ -154,13 +178,13 @@ class MeshOrbotIntegrationApp : Application() {
     private fun startIntegrationManagement() {
         applicationScope.launch {
             // Periodic role updates
-            while (isActive) {
+            while (gatewayActive) {
                 try {
                     emergentRoleManager.updateRoles()
                     delay(30_000) // Update every 30 seconds
                 } catch (e: Exception) {
                     betaTestLogger.log(LogLevel.ERROR, TAG, 
-                        "Error in periodic role update: ${e.message}", e)
+                        "Error in periodic role update: ${e.message}", throwable = e)
                     delay(60_000) // Back off on error
                 }
             }
@@ -182,15 +206,17 @@ class MeshOrbotIntegrationApp : Application() {
         
         applicationScope.launch(Dispatchers.IO) {
             try {
-                // Ensure Orbot is ready
-                if (orbotService.isTorReadyForMesh()) {
-                    meshTrafficRouter.enableGatewayRouting(MeshTrafficRouter.RoutingMode.TOR_ONLY)
+                // Ensure Tor is ready
+                if (torService.isTorReadyForMesh()) {
+                    meshTrafficRouter.enableGatewayRouting(MeshTrafficRouter.GatewayMode.TOR_GATEWAY)
+                    routingMode = MeshTrafficRouter.GatewayMode.TOR_GATEWAY
+                    gatewayActive = true
                     betaTestLogger.log(LogLevel.INFO, TAG, "Tor gateway routing enabled successfully")
                 } else {
-                    betaTestLogger.log(LogLevel.WARN, TAG, "Orbot not ready for mesh integration")
+                    betaTestLogger.log(LogLevel.WARN, TAG, "Tor not ready for mesh integration")
                 }
             } catch (e: Exception) {
-                betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to enable Tor gateway: ${e.message}", e)
+                betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to enable Tor gateway: ${e.message}", throwable = e)
             }
         }
     }
@@ -200,10 +226,12 @@ class MeshOrbotIntegrationApp : Application() {
         
         applicationScope.launch(Dispatchers.IO) {
             try {
-                meshTrafficRouter.enableGatewayRouting(MeshTrafficRouter.RoutingMode.CLEARNET_DIRECT)
+                meshTrafficRouter.enableGatewayRouting(MeshTrafficRouter.GatewayMode.CLEARNET_GATEWAY)
+                routingMode = MeshTrafficRouter.GatewayMode.CLEARNET_GATEWAY
+                gatewayActive = true
                 betaTestLogger.log(LogLevel.INFO, TAG, "Clearnet gateway routing enabled successfully")
             } catch (e: Exception) {
-                betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to enable clearnet gateway: ${e.message}", e)
+                betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to enable clearnet gateway: ${e.message}", throwable = e)
             }
         }
     }
@@ -213,10 +241,12 @@ class MeshOrbotIntegrationApp : Application() {
         
         applicationScope.launch(Dispatchers.IO) {
             try {
-                meshTrafficRouter.disableGatewayRouting()
+                meshTrafficRouter.enableGatewayRouting(MeshTrafficRouter.GatewayMode.NONE)
+                routingMode = MeshTrafficRouter.GatewayMode.NONE
+                gatewayActive = false
                 betaTestLogger.log(LogLevel.INFO, TAG, "Gateway routing disabled successfully")
             } catch (e: Exception) {
-                betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to disable gateway routing: ${e.message}", e)
+                betaTestLogger.log(LogLevel.ERROR, TAG, "Failed to disable gateway routing: ${e.message}", throwable = e)
             }
         }
     }
@@ -239,7 +269,7 @@ class MeshOrbotIntegrationApp : Application() {
                 }
             } catch (e: Exception) {
                 betaTestLogger.log(LogLevel.ERROR, TAG, 
-                    "Error updating roles based on mesh intelligence: ${e.message}", e)
+                    "Error updating roles based on mesh intelligence: ${e.message}", throwable = e)
             }
         }
     }
@@ -261,7 +291,7 @@ class MeshOrbotIntegrationApp : Application() {
                 
             } catch (e: Exception) {
                 betaTestLogger.log(LogLevel.ERROR, TAG, 
-                    "Error monitoring network connectivity: ${e.message}", e)
+                    "Error monitoring network connectivity: ${e.message}", throwable = e)
                 delay(120_000) // Back off on error
             }
         }
@@ -270,7 +300,7 @@ class MeshOrbotIntegrationApp : Application() {
     private suspend fun monitorOrbotServiceAvailability() {
         while (currentCoroutineContext().isActive) {
             try {
-                val isTorReady = orbotService.isTorReadyForMesh()
+                val isTorReady = torService.isTorReadyForMesh()
                 val currentRoles = emergentRoleManager.getCurrentMeshRoles()
                 
                 if (!isTorReady && MeshRole.TOR_GATEWAY in currentRoles) {
@@ -279,7 +309,8 @@ class MeshOrbotIntegrationApp : Application() {
                     
                     // Try switching to clearnet gateway mode
                     if (checkInternetConnectivity()) {
-                        meshTrafficRouter.enableGatewayRouting(MeshTrafficRouter.RoutingMode.CLEARNET_DIRECT)
+                        meshTrafficRouter.enableGatewayRouting(MeshTrafficRouter.GatewayMode.CLEARNET_GATEWAY)
+                        routingMode = MeshTrafficRouter.GatewayMode.CLEARNET_GATEWAY
                         betaTestLogger.log(LogLevel.INFO, TAG, "Switched to clearnet gateway mode")
                     }
                 }
@@ -288,7 +319,7 @@ class MeshOrbotIntegrationApp : Application() {
                 
             } catch (e: Exception) {
                 betaTestLogger.log(LogLevel.ERROR, TAG, 
-                    "Error monitoring Orbot service: ${e.message}", e)
+                    "Error monitoring Tor service: ${e.message}", throwable = e)
                 delay(60_000) // Back off on error
             }
         }
@@ -315,7 +346,7 @@ class MeshOrbotIntegrationApp : Application() {
                 emergentRoleManager.updateRoles()
                 betaTestLogger.log(LogLevel.INFO, TAG, "Manual role update triggered")
             } catch (e: Exception) {
-                betaTestLogger.log(LogLevel.ERROR, TAG, "Manual role update failed: ${e.message}", e)
+                betaTestLogger.log(LogLevel.ERROR, TAG, "Manual role update failed: ${e.message}", throwable = e)
             }
         }
     }
@@ -326,11 +357,45 @@ class MeshOrbotIntegrationApp : Application() {
     fun getCurrentStatus(): IntegrationStatus {
         return IntegrationStatus(
             meshRoles = emergentRoleManager.getCurrentMeshRoles(),
-            isGatewayActive = meshTrafficRouter.isGatewayRoutingEnabled(),
-            gatewayMode = meshTrafficRouter.getCurrentRoutingMode(),
+            isGatewayActive = meshTrafficRouter.isGatewayActive(),
+            gatewayMode = meshTrafficRouter.getCurrentGatewayMode().name,
             meshIntelligence = emergentRoleManager.getMeshIntelligence(),
-            isTorReady = orbotService.isTorReadyForMesh()
+            isTorReady = torService.isTorReadyForMesh()
         )
+    }
+    
+    // Factory methods for dependency injection
+    private fun createTorServiceImpl(): TorService {
+        // In production, this would be injected or bound to real OrbotService
+        // For now, return a simple implementation for testing
+        return object : TorService {
+            override fun isTorReadyForMesh(): Boolean = true
+            override fun isTorRunning(): Boolean = true
+            override fun enableMeshGateway(enabled: Boolean) {
+                Log.d(TAG, "Mock: enableMeshGateway($enabled)")
+            }
+        }
+    }
+    
+    private fun createMeshTrafficRouterImpl(): MeshTrafficRouter {
+        // In production, this would be injected with real implementation
+        return object : MeshTrafficRouter {
+            override fun enableGatewayRouting(mode: MeshTrafficRouter.GatewayMode) {
+                routingMode = mode
+                gatewayActive = (mode != MeshTrafficRouter.GatewayMode.NONE)
+                Log.d(TAG, "Mock: enableGatewayRouting($mode)")
+            }
+            
+            override fun isGatewayActive(): Boolean = gatewayActive
+            
+            override fun getCurrentGatewayMode(): MeshTrafficRouter.GatewayMode = routingMode
+            
+            override fun cleanup() {
+                gatewayActive = false
+                routingMode = MeshTrafficRouter.GatewayMode.NONE
+                Log.d(TAG, "Mock: cleanup()")
+            }
+        }
     }
     
     override fun onTerminate() {
@@ -341,7 +406,7 @@ class MeshOrbotIntegrationApp : Application() {
         // Cleanup integration
         applicationScope.launch {
             try {
-                meshTrafficRouter.disableGatewayRouting()
+                meshTrafficRouter.cleanup()
                 applicationScope.cancel()
             } catch (e: Exception) {
                 Log.e(TAG, "Error during cleanup", e)
@@ -360,7 +425,7 @@ class MeshOrbotIntegrationApp : Application() {
 data class IntegrationStatus(
     val meshRoles: Set<MeshRole>,
     val isGatewayActive: Boolean,
-    val gatewayMode: MeshTrafficRouter.RoutingMode,
+    val gatewayMode: String, // Simplified to String for now
     val meshIntelligence: MeshIntelligence,
     val isTorReady: Boolean
 ) {
@@ -369,7 +434,7 @@ data class IntegrationStatus(
     }
     
     val statusSummary: String get() = when {
-        isActingAsGateway -> "Acting as ${gatewayMode.name.lowercase()} gateway"
+        isActingAsGateway -> "Acting as ${gatewayMode.lowercase()} gateway"
         meshRoles.contains(MeshRole.MESH_PARTICIPANT) -> "Participating in mesh network"
         else -> "Initializing mesh connection"
     }

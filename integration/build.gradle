@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application' version '8.2.0'
     id 'org.jetbrains.kotlin.android' version '2.0.0'
     id 'org.jetbrains.kotlin.plugin.serialization' version "2.0.0"
+    id 'jacoco'
 }
 
 android {
@@ -19,6 +20,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            testCoverageEnabled true
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -38,6 +42,41 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+}
+
+// JaCoCo configuration for code coverage
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+tasks.register('jacocoTestReport', JacocoReport) {
+    dependsOn 'testDebugUnitTest'
+    
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    
+    def fileFilter = [
+        '**/R.class',
+        '**/R$*.class',
+        '**/BuildConfig.*',
+        '**/Manifest*.*',
+        '**/*Test*.*',
+        'android/**/*.*',
+        '**/beta/**/*.*' // Exclude beta logging from coverage (opt-in feature)
+    ]
+    
+    def debugTree = fileTree(dir: "${buildDir}/tmp/kotlin-classes/debug", excludes: fileFilter)
+    def mainSrc = "${project.projectDir}/src/main/java"
+    def kotlinSrc = "${project.projectDir}/src/main/kotlin"
+    
+    sourceDirectories.setFrom(files([mainSrc, kotlinSrc]))
+    classDirectories.setFrom(files([debugTree]))
+    executionData.setFrom(fileTree(dir: buildDir, includes: [
+        'outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec'
+    ]))
 }
 
 dependencies {
