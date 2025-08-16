@@ -19,6 +19,9 @@ import androidx.lifecycle.lifecycleScope
 import com.ustadmobile.meshrabiya.vnet.AndroidVirtualNode
 import com.ustadmobile.meshrabiya.vnet.wifi.ConnectBand
 import com.ustadmobile.meshrabiya.vnet.wifi.HotspotType
+import com.ustadmobile.meshrabiya.mmcp.MeshRole
+import com.ustadmobile.meshrabiya.beta.BetaTestLogger
+import com.ustadmobile.meshrabiya.beta.LogLevel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -48,6 +51,15 @@ class MainActivity : AppCompatActivity(), GatewayCapabilitiesManager.GatewayCapa
     private lateinit var shareTorSwitch: Switch
     private lateinit var gatewayStatusText: TextView
     private lateinit var gatewayCapabilitiesManager: GatewayCapabilitiesManager
+    
+    // Mesh-Orbot integration elements
+    private lateinit var integrationApp: MeshOrbotIntegrationApp
+    private lateinit var betaTestLogger: BetaTestLogger
+    private lateinit var meshRolesText: TextView
+    private lateinit var integrationStatusText: TextView
+    private lateinit var updateRolesButton: Button
+    private lateinit var viewLogsButton: Button
+    private lateinit var toggleLoggingButton: Button
     
     private val scheduledExecutor = Executors.newScheduledThreadPool(4)
     private val logMessages = mutableListOf<String>()
@@ -96,6 +108,18 @@ class MainActivity : AppCompatActivity(), GatewayCapabilitiesManager.GatewayCapa
         shareInternetSwitch = findViewById(R.id.share_internet_switch)
         shareTorSwitch = findViewById(R.id.share_tor_switch)
         gatewayStatusText = findViewById(R.id.gateway_status_text)
+        
+        // Initialize mesh-Orbot integration elements (optional - may not exist in layout)
+        try {
+            meshRolesText = findViewById(R.id.mesh_roles_text)
+            integrationStatusText = findViewById(R.id.integration_status_text)
+            updateRolesButton = findViewById(R.id.update_roles_button)
+            viewLogsButton = findViewById(R.id.view_logs_button)
+            toggleLoggingButton = findViewById(R.id.toggle_logging_button)
+            setupIntegrationUI()
+        } catch (e: Exception) {
+            Log.d("MainActivity", "Integration UI elements not found in layout - integration features disabled")
+        }
         
         // Initialize gateway capabilities manager
         gatewayCapabilitiesManager = GatewayCapabilitiesManager.getInstance(this)
@@ -435,6 +459,165 @@ class MainActivity : AppCompatActivity(), GatewayCapabilitiesManager.GatewayCapa
             }
             
             addLogMessage("Gateway capability: $capabilityDescription")
+        }
+    }
+    
+    // ===== MESH-ORBOT INTEGRATION METHODS =====
+    
+    private fun setupIntegrationUI() {
+        try {
+            // Initialize integration components
+            integrationApp = application as MeshOrbotIntegrationApp
+            betaTestLogger = BetaTestLogger.getInstance(this)
+            
+            // Setup button listeners
+            updateRolesButton.setOnClickListener {
+                integrationApp.triggerRoleUpdate()
+                Toast.makeText(this, "Role update triggered", Toast.LENGTH_SHORT).show()
+            }
+            
+            viewLogsButton.setOnClickListener {
+                showBetaLogs()
+            }
+            
+            toggleLoggingButton.setOnClickListener {
+                toggleLoggingLevel()
+            }
+            
+            updateLoggingButtonText()
+            
+            // Start periodic integration status updates
+            startIntegrationStatusUpdates()
+            
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Failed to setup integration UI", e)
+        }
+    }
+    
+    private fun startIntegrationStatusUpdates() {
+        lifecycleScope.launch {
+            while (true) {
+                try {
+                    updateIntegrationStatus()
+                    delay(3000) // Update every 3 seconds
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error updating integration status", e)
+                    delay(5000) // Back off on error
+                }
+            }
+        }
+    }
+    
+    private fun updateIntegrationStatus() {
+        try {
+            val status = integrationApp.getCurrentStatus()
+            
+            // Update roles display
+            val rolesDisplay = if (status.meshRoles.isEmpty()) {
+                "No active roles"
+            } else {
+                status.meshRoles.joinToString(", ") { role ->
+                    when (role) {
+                        MeshRole.MESH_PARTICIPANT -> "Participant"
+                        MeshRole.MESH_ROUTER -> "Router"
+                        MeshRole.TOR_GATEWAY -> "Tor Gateway"
+                        MeshRole.CLEARNET_GATEWAY -> "Clearnet Gateway"
+                        MeshRole.I2P_GATEWAY -> "I2P Gateway"
+                        MeshRole.STORAGE_NODE -> "Storage"
+                        MeshRole.COMPUTE_NODE -> "Compute"
+                        MeshRole.COORDINATOR -> "Coordinator"
+                        else -> role.name.lowercase().replace('_', ' ').capitalize()
+                    }
+                }
+            }
+            meshRolesText.text = "Mesh Roles: $rolesDisplay"
+            
+            // Update integration status
+            val integrationInfo = """
+                Status: ${status.statusSummary}
+                Gateway Active: ${status.isGatewayActive}
+                Gateway Mode: ${status.gatewayMode.name}
+                Tor Ready: ${status.isTorReady}
+                Mesh Nodes: ${status.meshIntelligence.totalNodes}
+                Active Gateways: ${status.meshIntelligence.activeGateways}
+            """.trimIndent()
+            
+            integrationStatusText.text = integrationInfo
+            
+            // Update text color based on gateway status
+            val statusColor = when {
+                status.isActingAsGateway -> android.graphics.Color.GREEN
+                status.isGatewayActive -> android.graphics.Color.YELLOW
+                else -> android.graphics.Color.WHITE
+            }
+            integrationStatusText.setTextColor(statusColor)
+            
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error updating integration status", e)
+            integrationStatusText.text = "Integration status error: ${e.message}"
+            integrationStatusText.setTextColor(android.graphics.Color.RED)
+        }
+    }
+    
+    private fun showBetaLogs() {
+        try {
+            val logs = betaTestLogger.getLogs()
+            
+            if (logs.isEmpty()) {
+                Toast.makeText(this, "No logs captured", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // Show recent logs
+            val recentLogs = logs.takeLast(15)
+            val logText = recentLogs.joinToString("\n") { log ->
+                val timestamp = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(log.timestamp))
+                "$timestamp [${log.level.name.first()}] ${log.message}"
+            }
+            
+            // Update the existing log display with integration logs
+            addLogMessage("=== INTEGRATION LOGS ===")
+            logText.split("\n").forEach { line ->
+                addLogMessage(line)
+            }
+            addLogMessage("=== END INTEGRATION LOGS ===")
+            
+            Toast.makeText(this, "Integration logs added to display (${logs.size} total)", Toast.LENGTH_SHORT).show()
+            
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error viewing logs: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e("MainActivity", "Error showing beta logs", e)
+        }
+    }
+    
+    private fun toggleLoggingLevel() {
+        try {
+            val currentLevel = betaTestLogger.getLogLevel()
+            val newLevel = when (currentLevel) {
+                LogLevel.DISABLED -> LogLevel.BASIC
+                LogLevel.BASIC -> LogLevel.DETAILED
+                LogLevel.DETAILED -> LogLevel.FULL
+                LogLevel.FULL -> LogLevel.DISABLED
+            }
+            
+            betaTestLogger.setLogLevel(newLevel)
+            updateLoggingButtonText()
+            
+            Toast.makeText(this, "Logging level: ${newLevel.name}", Toast.LENGTH_SHORT).show()
+            addLogMessage("Changed logging level to: ${newLevel.name}")
+            
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error changing log level: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e("MainActivity", "Error toggling logging level", e)
+        }
+    }
+    
+    private fun updateLoggingButtonText() {
+        try {
+            val level = betaTestLogger.getLogLevel()
+            toggleLoggingButton.text = "Logging: ${level.name}"
+        } catch (e: Exception) {
+            toggleLoggingButton.text = "Logging: ERROR"
         }
     }
 }
