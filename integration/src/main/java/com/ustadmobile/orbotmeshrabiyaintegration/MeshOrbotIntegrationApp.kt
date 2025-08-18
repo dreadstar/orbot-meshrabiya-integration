@@ -12,10 +12,14 @@ import com.ustadmobile.meshrabiya.beta.BetaTestLogger
 import com.ustadmobile.meshrabiya.beta.LogLevel
 import com.ustadmobile.orbotmeshrabiyaintegration.interfaces.TorService
 import com.ustadmobile.orbotmeshrabiyaintegration.interfaces.MeshTrafficRouter
+import com.ustadmobile.orbotmeshrabiyaintegration.routing.MeshTrafficRouterImpl
+import com.ustadmobile.orbotmeshrabiyaintegration.routing.OrbotServiceImpl
+import com.ustadmobile.orbotmeshrabiyaintegration.config.MeshServiceConfiguration
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import java.util.concurrent.ScheduledExecutorService
+import kotlin.coroutines.coroutineContext
 
 // DataStore extension for application context
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "mesh_settings")
@@ -33,6 +37,7 @@ class MeshOrbotIntegrationApp : Application() {
     private lateinit var meshTrafficRouter: MeshTrafficRouter
     private lateinit var betaTestLogger: BetaTestLogger
     private lateinit var torService: TorService
+    private lateinit var serviceConfiguration: MeshServiceConfiguration
     
     // Shared services
     private lateinit var executorService: ScheduledExecutorService
@@ -49,6 +54,9 @@ class MeshOrbotIntegrationApp : Application() {
         
         Log.d(TAG, "Initializing Mesh-Orbot Integration Application")
         
+        // Initialize service configuration
+        initializeServiceConfiguration()
+        
         // Initialize beta logging
         initializeBetaLogging()
         
@@ -62,6 +70,25 @@ class MeshOrbotIntegrationApp : Application() {
         startIntegrationManagement()
         
         Log.d(TAG, "Mesh-Orbot Integration Application initialized successfully")
+    }
+    
+    
+    private fun initializeServiceConfiguration() {
+        serviceConfiguration = MeshServiceConfiguration(this)
+        
+        // Check configuration status
+        val configSummary = serviceConfiguration.generateConfigurationSummary()
+        
+        Log.d(TAG, "Service configuration status:")
+        Log.d(TAG, "- Permissions: ${configSummary.permissionStatus.hasAllPermissions}")
+        Log.d(TAG, "- VPN Service: ${configSummary.serviceStatus.isConfigured}")
+        Log.d(TAG, "- Directories: ${configSummary.directoryStatus.success}")
+        Log.d(TAG, "- Orbot: ${serviceConfiguration.checkOrbotAvailability().isInstalled}")
+        
+        if (!configSummary.isFullyConfigured) {
+            Log.w(TAG, "Service configuration incomplete - some features may not work")
+            Log.w(TAG, "Missing permissions: ${configSummary.permissionStatus.missingPermissions}")
+        }
     }
     
     private fun initializeBetaLogging() {
@@ -298,7 +325,7 @@ class MeshOrbotIntegrationApp : Application() {
     }
     
     private suspend fun monitorOrbotServiceAvailability() {
-        while (currentCoroutineContext().isActive) {
+        while (coroutineContext.isActive) {
             try {
                 val isTorReady = torService.isTorReadyForMesh()
                 val currentRoles = emergentRoleManager.getCurrentMeshRoles()
@@ -366,36 +393,13 @@ class MeshOrbotIntegrationApp : Application() {
     
     // Factory methods for dependency injection
     private fun createTorServiceImpl(): TorService {
-        // In production, this would be injected or bound to real OrbotService
-        // For now, return a simple implementation for testing
-        return object : TorService {
-            override fun isTorReadyForMesh(): Boolean = true
-            override fun isTorRunning(): Boolean = true
-            override fun enableMeshGateway(enabled: Boolean) {
-                Log.d(TAG, "Mock: enableMeshGateway($enabled)")
-            }
-        }
+        // Create real Orbot service implementation
+        return OrbotServiceImpl(this)
     }
     
     private fun createMeshTrafficRouterImpl(): MeshTrafficRouter {
-        // In production, this would be injected with real implementation
-        return object : MeshTrafficRouter {
-            override fun enableGatewayRouting(mode: MeshTrafficRouter.GatewayMode) {
-                routingMode = mode
-                gatewayActive = (mode != MeshTrafficRouter.GatewayMode.NONE)
-                Log.d(TAG, "Mock: enableGatewayRouting($mode)")
-            }
-            
-            override fun isGatewayActive(): Boolean = gatewayActive
-            
-            override fun getCurrentGatewayMode(): MeshTrafficRouter.GatewayMode = routingMode
-            
-            override fun cleanup() {
-                gatewayActive = false
-                routingMode = MeshTrafficRouter.GatewayMode.NONE
-                Log.d(TAG, "Mock: cleanup()")
-            }
-        }
+        // Create real mesh traffic router implementation
+        return MeshTrafficRouterImpl(this)
     }
     
     override fun onTerminate() {

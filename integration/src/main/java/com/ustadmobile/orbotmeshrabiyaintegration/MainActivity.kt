@@ -2,8 +2,11 @@ package com.ustadmobile.orbotmeshrabiyaintegration
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Build
 import android.os.Bundle
+import android.telephony.SignalStrength
 import android.util.Log
 import android.widget.Button
 import android.widget.Switch
@@ -25,6 +28,7 @@ import com.ustadmobile.meshrabiya.beta.LogLevel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
+import com.ustadmobile.meshrabiya.integration.R
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.Executors
@@ -373,11 +377,34 @@ class MainActivity : AppCompatActivity(), GatewayCapabilitiesManager.GatewayCapa
                 // Test 2: Check if we can bind to ports
                 addLogMessage("Node port: ${node.port}")
                 
-                // Test 3: WiFi connectivity test
-                val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as android.net.wifi.WifiManager
-                val wifiInfo = wifiManager.connectionInfo
-                addLogMessage("WiFi SSID: ${wifiInfo.ssid}")
-                addLogMessage("WiFi BSSID: ${wifiInfo.bssid}")
+                // Test 3: WiFi connectivity test (using modern API)
+                val connectivityManager = getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
+                val activeNetwork = connectivityManager.activeNetwork
+                val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+                
+                if (networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) == true) {
+                    addLogMessage("WiFi: Connected")
+                    
+                    // Get signal strength if available (Android Q+)
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                        val signalStrength = networkCapabilities.signalStrength
+                        if (signalStrength != Int.MIN_VALUE) {
+                            addLogMessage("WiFi Signal Strength: ${signalStrength} dBm")
+                        }
+                    } else {
+                        // Fallback for older devices
+                        @Suppress("DEPRECATION")
+                        val wifiManager = applicationContext.getSystemService(WIFI_SERVICE) as android.net.wifi.WifiManager
+                        @Suppress("DEPRECATION")
+                        val wifiInfo = wifiManager.connectionInfo
+                        @Suppress("DEPRECATION")
+                        addLogMessage("WiFi SSID: ${wifiInfo.ssid}")
+                        @Suppress("DEPRECATION")
+                        addLogMessage("WiFi BSSID: ${wifiInfo.bssid}")
+                    }
+                } else {
+                    addLogMessage("WiFi: Not connected")
+                }
                 
                 addLogMessage("Connectivity test completed")
                 

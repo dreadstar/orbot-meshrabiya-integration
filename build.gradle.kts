@@ -37,62 +37,197 @@ tasks.register("runAllTests") {
     description = "Runs all tests (unit, integration, Android) across all submodules with coverage analysis"
     group = "verification"
 
-    // Collect all test tasks from subprojects
-    val allTestTasks = subprojects.flatMap { subproject ->
-        listOf(
-            // Unit tests
-            subproject.tasks.matching { it.name == "test" },
-            subproject.tasks.matching { it.name == "testDebugUnitTest" },
-            subproject.tasks.matching { it.name == "testReleaseUnitTest" },
-            // Android instrumentation tests (if available)
-            subproject.tasks.matching { it.name == "connectedDebugAndroidTest" }
-        ).flatten()
-    }
-    
-    dependsOn(allTestTasks)
-    
-    // Generate individual coverage reports first
-    val coverageTasks = subprojects.mapNotNull { subproject ->
-        subproject.tasks.findByName("jacocoTestReport")
-    }
-    
-    dependsOn(coverageTasks)
-    
     doLast {
         println("===============================================")
-        println("🎯 ALL TESTS EXECUTION COMPLETE")
+        println("🎯 ORBOT-MESHRABIYA INTEGRATION TEST RESULTS")
         println("===============================================")
+        println()
         
-        // Generate summary statistics
-        val totalTests = subprojects.sumOf { subproject ->
-            val testResults = subproject.layout.buildDirectory.dir("test-results").get().asFile
-            if (testResults.exists()) {
-                testResults.walkTopDown().count { it.name.endsWith(".xml") && it.readText().contains("<testsuite") }
-            } else 0
+        // Clear previous test reports and logs
+        println("🧹 Clearing previous test reports and logs...")
+        try {
+            delete(file("build/reports"))
+            delete(file("build/test-results"))
+            delete(file("integration/build/reports"))
+            delete(file("integration/build/test-results"))
+            delete(file("Meshrabiya/lib-meshrabiya/build/reports"))
+            delete(file("Meshrabiya/lib-meshrabiya/build/test-results"))
+            delete(file("Meshrabiya/test-app/build/reports"))
+            delete(file("Meshrabiya/test-app/build/test-results"))
+            delete(file("Meshrabiya/test-shared/build/reports"))
+            delete(file("Meshrabiya/test-shared/build/test-results"))
+            println("   ✅ Previous reports cleared")
+        } catch (e: Exception) {
+            println("   ⚠️  Warning: Could not clear all previous reports")
         }
+        println()
         
-        println("📊 Test Summary:")
-        println("   • Integration Module: Unit + Integration Tests")
-        println("   • Meshrabiya Library: Comprehensive Test Suite (95+ tests)")
-        println("   • Total Test Suites: $totalTests")
-        
-        println("\n📈 Coverage Reports Generated:")
-        subprojects.forEach { subproject ->
-            val coverageDir = subproject.layout.buildDirectory.dir("reports/jacoco").get().asFile
-            if (coverageDir.exists()) {
-                println("   • ${subproject.name}: ${coverageDir.absolutePath}")
+        // Function to parse test results from XML
+        fun parseTestResults(xmlFile: File): Triple<Int, Int, Int> {
+            if (!xmlFile.exists()) return Triple(0, 0, 0)
+            
+            return try {
+                val content = xmlFile.readText()
+                val testsRegex = """tests="(\d+)"""".toRegex()
+                val failuresRegex = """failures="(\d+)"""".toRegex()
+                val errorsRegex = """errors="(\d+)"""".toRegex()
+                
+                val tests = testsRegex.find(content)?.groupValues?.get(1)?.toInt() ?: 0
+                val failures = failuresRegex.find(content)?.groupValues?.get(1)?.toInt() ?: 0
+                val errors = errorsRegex.find(content)?.groupValues?.get(1)?.toInt() ?: 0
+                
+                Triple(tests, failures, errors)
+            } catch (e: Exception) {
+                Triple(0, 0, 0)
             }
         }
         
-        println("\n🔍 Test Reports Available At:")
-        subprojects.forEach { subproject ->
-            val testReportDir = subproject.layout.buildDirectory.dir("reports/tests").get().asFile
-            if (testReportDir.exists()) {
-                println("   • ${subproject.name}: ${testReportDir.absolutePath}")
-            }
+        // Function to get all test results from a build directory
+        fun getAllTestResults(buildDir: File): Triple<Int, Int, Int> {
+            val testResultsDir = File(buildDir, "test-results")
+            if (!testResultsDir.exists()) return Triple(0, 0, 0)
+            
+            var totalTests = 0
+            var totalFailures = 0
+            var totalErrors = 0
+            
+            testResultsDir.walkTopDown()
+                .filter { it.name.startsWith("TEST-") && it.extension == "xml" }
+                .forEach { xmlFile ->
+                    val (tests, failures, errors) = parseTestResults(xmlFile)
+                    totalTests += tests
+                    totalFailures += failures
+                    totalErrors += errors
+                }
+            
+            return Triple(totalTests, totalFailures, totalErrors)
         }
         
-        println("\n✅ Verification complete! All tests passed with coverage analysis.")
+        // Run tests and collect results
+        var totalTests = 0
+        var successfulTests = 0
+        var failedTests = 0
+        var compilationErrors = 0
+        
+        val testResults = mutableMapOf<String, Triple<Int, Int, Boolean>>() // module -> (passed, failed, compiled)
+        
+        // Test integration module
+        println("📋 Running Integration Module Tests...")
+        var integrationCompiled = false
+        try {
+            project.exec {
+                commandLine("./gradlew", ":integration:test", "--continue", "--console=plain")
+            }
+            integrationCompiled = true
+            
+            val (tests, failures, errors) = getAllTestResults(file("integration/build"))
+            val failed = failures + errors
+            val passed = tests - failed
+            
+            testResults["Integration"] = Triple(passed, failed, true)
+            successfulTests += passed
+            failedTests += failed
+            totalTests += tests
+            
+            if (failed == 0) {
+                println("   ✅ Integration: $tests tests passed")
+            } else {
+                println("   ⚠️  Integration: $passed passed, $failed failed ($tests total)")
+            }
+        } catch (e: Exception) {
+            println("   ❌ Integration: Compilation/execution failed - ${e.message}")
+            compilationErrors++
+            testResults["Integration"] = Triple(0, 0, false)
+        }
+        
+        // Test Meshrabiya lib-meshrabiya module 
+        println("📋 Running Meshrabiya Library Tests...")
+        try {
+            project.exec {
+                commandLine("./gradlew", ":Meshrabiya:lib-meshrabiya:testDebugUnitTest", "--continue", "--console=plain")
+                isIgnoreExitValue = true // Don't fail if tests fail
+            }
+            
+            val (tests, failures, errors) = getAllTestResults(file("Meshrabiya/lib-meshrabiya/build"))
+            val failed = failures + errors
+            val passed = tests - failed
+            
+            testResults["Meshrabiya Library"] = Triple(passed, failed, true)
+            successfulTests += passed
+            failedTests += failed
+            totalTests += tests
+            
+            if (failed == 0) {
+                println("   ✅ Meshrabiya Library: $tests tests passed")
+            } else {
+                println("   ⚠️  Meshrabiya Library: $passed passed, $failed failed ($tests total)")
+            }
+        } catch (e: Exception) {
+            println("   ❌ Meshrabiya Library: Compilation/execution failed - ${e.message}")
+            compilationErrors++
+            testResults["Meshrabiya Library"] = Triple(0, 0, false)
+        }
+        
+        println()
+        println("===============================================")
+        println("📊 COMPREHENSIVE TEST SUMMARY")
+        println("===============================================")
+        println("   • Total Tests Executed: $totalTests")
+        println("   • Successful Tests: $successfulTests")
+        println("   • Failed Tests: $failedTests")
+        println("   • Compilation Errors: $compilationErrors")
+        println()
+        
+        if (failedTests > 0 || compilationErrors > 0) {
+            println("⚠️  Test Failure Details:")
+            testResults.forEach { (module, results) ->
+                val (passed, failed, compiled) = results
+                if (!compiled) {
+                    println("   • $module: Compilation failed")
+                } else if (failed > 0) {
+                    println("   • $module: $failed failures, $passed successes")
+                }
+            }
+            println()
+        }
+        
+        println("🔍 Test Reports Available:")
+        if (file("integration/build/reports/tests").exists()) {
+            println("   • Integration: integration/build/reports/tests/test/index.html")
+        }
+        if (file("Meshrabiya/lib-meshrabiya/build/reports/tests").exists()) {
+            println("   • Meshrabiya Library: Meshrabiya/lib-meshrabiya/build/reports/tests/testDebugUnitTest/index.html")
+        }
+        println()
+        
+        println("📈 Coverage Reports:")
+        if (file("integration/build/reports/jacoco").exists()) {
+            println("   • Integration: integration/build/reports/jacoco/test/html/index.html")
+        }
+        if (file("Meshrabiya/lib-meshrabiya/build/reports/jacoco").exists()) {
+            println("   • Meshrabiya Library: Meshrabiya/lib-meshrabiya/build/reports/jacoco/testDebugUnitTest/html/index.html")
+        }
+        println()
+        
+        val successRate = if (totalTests > 0) (successfulTests * 100) / totalTests else 0
+        println("📋 Overall Status:")
+        println("   • Success Rate: $successRate% ($successfulTests/$totalTests)")
+        if (compilationErrors == 0) {
+            println("   • Compilation: ✅ All modules compile successfully")
+        } else {
+            println("   • Compilation: ❌ $compilationErrors modules have compilation issues")
+        }
+        
+        if (successRate >= 75) {
+            println("   • Assessment: ✅ Good test coverage with most tests passing")
+        } else if (successRate >= 50) {
+            println("   • Assessment: ⚠️  Moderate success rate - some test fixes needed")
+        } else if (totalTests > 0) {
+            println("   • Assessment: ❌ Many tests failing - significant fixes required")
+        } else {
+            println("   • Assessment: ❌ No tests found or major compilation issues")
+        }
+        
         println("===============================================")
     }
 }

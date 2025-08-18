@@ -19,5 +19,4 @@ dependencyResolutionManagement {
 rootProject.name = "orbot-meshrabiya-integration"
 
 include(":integration")
-include(":Meshrabiya:lib-meshrabiya")
-include(":orbot-android:OrbotLib") 
+include(":Meshrabiya:lib-meshrabiya") 

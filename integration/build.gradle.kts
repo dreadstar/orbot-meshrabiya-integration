@@ -5,7 +5,7 @@ repositories {
     maven { url = uri("https://raw.githubusercontent.com/guardianproject/gpmaven/master") }
 }
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
 }
@@ -15,13 +15,11 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "org.torproject.android.meshrabiya"
-        versionCode = 1
-        versionName = "1.0"
         minSdk = 21
         targetSdk = 34
-        multiDexEnabled = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        consumerProguardFiles("consumer-rules.pro")
     }
 
 
@@ -57,7 +55,6 @@ dependencies {
     coreLibraryDesugaring(libs.android.desugar.jdk.libs)
     
     implementation(project(":Meshrabiya:lib-meshrabiya"))
-    implementation(project(":orbot-android:OrbotLib"))
     
     implementation(libs.android.material)
     implementation(libs.androidx.core.ktx)
@@ -66,6 +63,15 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)
+    
+    // ViewModel and LiveData (for simplified UI)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
+    
+    // Navigation (for fragments)
+    implementation("androidx.navigation:navigation-fragment-ktx:2.9.0")
+    implementation("androidx.navigation:navigation-ui-ktx:2.9.0")
     
     testImplementation(libs.junit.jupiter)
     androidTestImplementation(libs.androidx.junit)

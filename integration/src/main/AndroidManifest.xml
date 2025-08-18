@@ -24,7 +24,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MeshrabiyaIntegration">
         <activity
-            android:name=".MainActivity"
+            android:name="com.ustadmobile.orbotmeshrabiyaintegration.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

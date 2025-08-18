@@ -1,16 +1,16 @@
 [versions]
 mockk = "1.13.10"
 agp = "8.2.0"
-kotlin = "2.0.0"
-kotlin-serialization = "2.0.0"
+kotlin = "1.9.25"
+kotlin-serialization = "1.9.25"
 android-material = "1.12.0"
 androidx-core-ktx = "1.12.0"
 androidx-appcompat = "1.7.1"
 androidx-activity = "1.10.1"
 androidx-constraintlayout = "2.2.1"
-kotlin-test = "2.0.0"
-kotlinx-coroutines = "1.10.2"
-kotlinx-serialization-json = "1.8.1"
+kotlin-test = "1.9.25"
+kotlinx-coroutines = "1.7.3"
+kotlinx-serialization-json = "1.6.3"
 junit-jupiter = "5.13.2"
 androidx-junit = "1.2.1"
 androidx-espresso = "3.6.1"
@@ -46,9 +46,12 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "a
 androidx-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-espresso" }
 android-desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "android-desugar" }
 rawhttp-core = { group = "com.athaydes.rawhttp", name = "rawhttp-core", version.ref = "rawhttp" }
+bouncycastle-provider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-pkix = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
 bcprov-jdk18on = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
 bcpkix-jdk18on = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
 ipaddress = { group = "com.github.seancfoley", name = "ipaddress", version.ref = "ipaddress" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }

@@ -1,18 +1,18 @@
 plugins {
     id 'com.android.application' version '8.2.0'
-    id 'org.jetbrains.kotlin.android' version '2.0.0'
-    id 'org.jetbrains.kotlin.plugin.serialization' version "2.0.0"
+    id 'org.jetbrains.kotlin.android' version '1.9.25'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "1.9.25"
     id 'jacoco'
 }
 
 android {
-    namespace 'com.ustadmobile.orbotmeshrabiyaintegration'
-    compileSdk 34
+    namespace 'com.ustadmobile.meshrabiya.integration'
+    compileSdk 35
 
     defaultConfig {
-        applicationId "com.ustadmobile.orbotmeshrabiyaintegration"
+        applicationId "com.ustadmobile.meshrabiya.integration"
         minSdk 26
-        targetSdk 34
+        targetSdk 35
         versionCode 1
         versionName "1.0"
 
@@ -80,6 +80,50 @@ tasks.register('jacocoTestReport', JacocoReport) {
 }
 
 dependencies {
+    constraints {
+        implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.25") {
+            because "Force Kotlin 1.9.25 to avoid version conflicts"
+        }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-common:1.9.25") {
+            because "Force Kotlin 1.9.25 stdlib-common to avoid version conflicts"
+        }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.25") {
+            because "Force Kotlin 1.9.25 stdlib-jdk7 to avoid version conflicts"
+        }
+        implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.25") {
+            because "Force Kotlin 1.9.25 to avoid version conflicts"
+        }
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3") {
+            because "Use coroutines compatible with Kotlin 1.9.25"
+        }
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3") {
+            because "Use coroutines-core-jvm compatible with Kotlin 1.9.25"
+        }
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") {
+            because "Use coroutines compatible with Kotlin 1.9.25"
+        }
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3") {
+            because "Use serialization compatible with Kotlin 1.9.25"
+        }
+        implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3") {
+            because "Use serialization compatible with Kotlin 1.9.25"
+        }
+    }
+    
+    configurations.all {
+        resolutionStrategy {
+            force 'org.jetbrains.kotlin:kotlin-stdlib:1.9.25'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-common:1.9.25'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.25'
+            force 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.25'
+            force 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+            force 'org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3'
+            force 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
+            force 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
+            force 'org.jetbrains.kotlinx:kotlinx-serialization-core:1.6.3'
+        }
+    }
+    
     implementation project(':Meshrabiya:lib-meshrabiya')
     implementation 'androidx.core:core-ktx:1.12.0'
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
@@ -87,17 +131,17 @@ dependencies {
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
     implementation 'androidx.datastore:datastore-preferences:1.1.7'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3'
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.9.1'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
-    implementation 'org.jetbrains.kotlin:kotlin-test:2.0.0'
+    implementation 'org.jetbrains.kotlin:kotlin-test:1.9.25'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.10.3'
     testImplementation 'io.mockk:mockk:1.13.7'
     testImplementation 'androidx.test:core:1.5.0'
     testImplementation 'androidx.test.ext:junit:1.1.5'
     testImplementation 'androidx.security:security-crypto:1.1.0-alpha06'
-} 
+}
