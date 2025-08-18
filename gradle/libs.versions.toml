@@ -1,36 +1,44 @@
 [versions]
+mockk = "1.13.10"
 agp = "8.2.0"
-kotlin = "1.9.0"
-kotlin-serialization = "1.9.0"
-android-material = "1.11.0"
+kotlin = "1.9.25"
+kotlin-serialization = "1.9.25"
+android-material = "1.12.0"
 androidx-core-ktx = "1.12.0"
-androidx-appcompat = "1.6.1"
-androidx-activity = "1.8.2"
-androidx-constraintlayout = "2.1.4"
+androidx-appcompat = "1.7.1"
+androidx-activity = "1.10.1"
+androidx-constraintlayout = "2.2.1"
+kotlin-test = "1.9.25"
 kotlinx-coroutines = "1.7.3"
-kotlinx-serialization-json = "1.6.0"
-junit-jupiter = "5.10.1"
-androidx-junit = "1.1.5"
-androidx-espresso = "3.5.1"
-android-desugar = "2.0.4"
-rawhttp = "2.5.2"
+kotlinx-serialization-json = "1.6.3"
+junit-jupiter = "5.13.2"
+androidx-junit = "1.2.1"
+androidx-espresso = "3.6.1"
+android-desugar = "2.1.5"
+lifecycle-runtime-ktx = "2.9.1"
+rawhttp = "2.6.0"
 bouncycastle = "1.75"
-ipaddress = "5.4.0"
-datastore = "1.0.0"
-mockito-kotlin = "5.2.1"
-turbine = "1.0.0"
+ipaddress = "5.5.1"
+datastore = "1.1.7"
+mockito-kotlin = "5.4.0"
+turbine = "1.2.1"
 mockwebserver = "4.12.0"
 okhttp = "4.12.0"
-mockito-android = "5.8.0"
-androidx-test-rules = "1.5.0"
-androidx-test-ext-junit = "1.1.5"
+mockito-android = "5.18.0"
+androidx-test-rules = "1.6.1"
+androidx-test-ext-junit = "1.2.1"
+room-runtime-android = "2.7.2"
 
 [libraries]
+kotlin-mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+kotlin-mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
 android-material = { group = "com.google.android.material", name = "material", version.ref = "android-material" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidx-appcompat" }
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "androidx-activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "androidx-constraintlayout" }
+androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin-test" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit-jupiter" }
@@ -38,9 +46,12 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "a
 androidx-espresso = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "androidx-espresso" }
 android-desugar-jdk-libs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "android-desugar" }
 rawhttp-core = { group = "com.athaydes.rawhttp", name = "rawhttp-core", version.ref = "rawhttp" }
+bouncycastle-provider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-pkix = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
 bcprov-jdk18on = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
 bcpkix-jdk18on = { group = "org.bouncycastle", name = "bcpkix-jdk18on", version.ref = "bouncycastle" }
 ipaddress = { group = "com.github.seancfoley", name = "ipaddress", version.ref = "ipaddress" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockito-kotlin" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
@@ -49,9 +60,10 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 mockito-android = { group = "org.mockito", name = "mockito-android", version.ref = "mockito-android" }
 androidx-test-rules = { group = "androidx.test", name = "rules", version.ref = "androidx-test-rules" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }
+androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "room-runtime-android" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization" } 
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin-serialization" }
